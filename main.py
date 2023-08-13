@@ -8,6 +8,9 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko)'
                   ' Chrome/39.0.2171.95 Safari/537.36'}
 
+# "INSERT INTO events VALUES ('Tigers', 'Tiger City', '4.3.2093')"
+# "SELECT * FROM events WHERE date='31.10.2091'"
+# "DELETE FROM events WHERE band='Tigers'"
 
 def scrape(url):
     response = requests.get(url, headers=HEADERS)
@@ -48,9 +51,10 @@ def send_email(message):
     receiver = os.getenv("GMAIL")
     context = ssl.create_default_context()
 
-    with smtplib.SMTP_SSL(host, port, context=context) as server:
-        server.login(username, password)
-        server.sendmail(username, receiver, message)
+    # with smtplib.SMTP_SSL(host, port, context=context) as server:
+    #     server.login(username, password)
+    #     server.sendmail(username, receiver, message)
+    print("mail sent")
 
 
 if __name__ == "__main__":
