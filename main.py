@@ -9,6 +9,8 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko)'
                   ' Chrome/39.0.2171.95 Safari/537.36'}
 
+conn = sqlite3.connect("data.db")
+
 # "INSERT INTO events VALUES ('Tigers', 'Tiger City', '4.3.2093')"
 # "SELECT * FROM events WHERE date='31.10.2091'"
 # "DELETE FROM events WHERE band='Tigers'"
@@ -33,14 +35,19 @@ def check_if_exists(extr):
     with open("data.txt", "r") as file:
         existings = file.readlines()
     existings = [each.strip("\n") for each in existings]
-    print(extr in existings)
     return extr in existings
 
 
 def check_db(extr):
-    conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
-    band, city, date = extr.split(",")
+    row = extr.split(",")
+    row = [item.strip() for item in row]
+    band, city, date = row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM events WHERE band=? AND city=? AND date=?", (band, city, date))
+    rows = cursor.fetchall()
+    print(f"{rows = }")
+    return rows  # returns false if there is no match ie should be added
 
 
 def store_text(extr):
@@ -50,15 +57,15 @@ def store_text(extr):
 
 
 def store_db(extr):
-    conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
-    band, city, date = extr.split(",")
-    cursor.execute("INSERT INTO events VALUES (?,?,?)", (band.strip(), city.strip(), date.strip()))
-    cursor.execute("SELECT * FROM events")  # Query all data
+    row = extr.split(",")
+    row = [item.strip() for item in row]
+    band, city, date = row
+    cursor.execute("INSERT INTO events VALUES (?,?,?)", row)
     conn.commit()
-    rows = cursor.fetchall()
-    print(rows)
     print("stored in db")
+    row = [band.strip(), city.strip(), date.strip()]
+    return row
 
 
 def send_email(message):
@@ -82,9 +89,9 @@ if __name__ == "__main__":
     extracted = extract(scraped)
     print(extracted)
     if extracted:
-        if check_if_exists(extracted):
+        if check_db(extracted):
             print("already in the list")
         else:
             send_email(extracted)
-            store_text(extracted)
+            # store_text(extracted)
             store_db(extracted)
