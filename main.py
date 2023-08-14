@@ -2,6 +2,7 @@ import requests
 import selectorlib
 import smtplib, ssl
 import os
+import sqlite3
 
 URL = "https://programmer100.pythonanywhere.com/tours/"
 HEADERS = {
@@ -11,6 +12,7 @@ HEADERS = {
 # "INSERT INTO events VALUES ('Tigers', 'Tiger City', '4.3.2093')"
 # "SELECT * FROM events WHERE date='31.10.2091'"
 # "DELETE FROM events WHERE band='Tigers'"
+
 
 def scrape(url):
     response = requests.get(url, headers=HEADERS)
@@ -35,10 +37,28 @@ def check_if_exists(extr):
     return extr in existings
 
 
-def store(extr):
+def check_db(extr):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    band, city, date = extr.split(",")
+
+
+def store_text(extr):
     with open("data.txt", "a") as file:
         file.write(extr + "\n")
         print("new data written")
+
+
+def store_db(extr):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    band, city, date = extr.split(",")
+    cursor.execute("INSERT INTO events VALUES (?,?,?)", (band.strip(), city.strip(), date.strip()))
+    cursor.execute("SELECT * FROM events")  # Query all data
+    conn.commit()
+    rows = cursor.fetchall()
+    print(rows)
+    print("stored in db")
 
 
 def send_email(message):
@@ -66,4 +86,5 @@ if __name__ == "__main__":
             print("already in the list")
         else:
             send_email(extracted)
-            store(extracted)
+            store_text(extracted)
+            store_db(extracted)
